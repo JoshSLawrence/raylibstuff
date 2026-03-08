@@ -38,9 +38,6 @@ int main(void) {
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
   SetTargetFPS(FPS);
 
-  Vector2 slopeAvg[100];
-
-  int thing[100];
   Square square = {
       .rectangle =
           {
