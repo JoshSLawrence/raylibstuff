@@ -1,5 +1,6 @@
 #include "include/raylib.h"
 
+const int FPS = 60;
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 450;
 const char *WINDOW_TITLE = "raylib lab - bouncing square";
@@ -35,7 +36,7 @@ bool is_mouse_on_square(Square *square);
 int main(void) {
 
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
-  SetTargetFPS(60);
+  SetTargetFPS(FPS);
 
   Vector2 slopeAvg[100];
 
