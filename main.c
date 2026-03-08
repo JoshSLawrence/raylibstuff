@@ -1,4 +1,5 @@
-#include "include/raylib.h"
+#include <math.h>
+#include <raylib.h>
 
 const int FPS = 60;
 const int SCREEN_WIDTH = 800;
