@@ -9,26 +9,13 @@ const float SPEED = 500.0f;
 const int SIZE = 80;
 const int STARTING_POSITION[] = {0, SCREEN_HEIGHT / 2 - SIZE / 2};
 
-typedef enum {
-  NORTH,
-  SOUTH,
-  EAST,
-  WEST,
-  NONE,
-} Direction;
-
-typedef struct Heading {
-  Direction vertical;
-  Direction horizontal;
-} Heading;
-
 typedef struct Square {
   Rectangle rectangle;
-  Heading heading;
+  Vector2 heading;
   float speed;
   bool selected;
-  int rise;
-  int run;
+  Vector2 lastMousePos;
+  int sampleCount;
 } Square;
 
 void move_square(Square *square, float deltaTime);
@@ -49,11 +36,13 @@ int main(void) {
           },
       .heading =
           {
-              .vertical = NONE,
-              .horizontal = EAST,
+              .x = 1.0f,
+              .y = 0.0f,
           },
       .speed = SPEED,
       .selected = false,
+      .lastMousePos = {0, 0},
+      .sampleCount = 0,
   };
 
   while (!WindowShouldClose()) {
@@ -110,54 +99,52 @@ void move_square(Square *square, float deltaTime) {
     newPosition.x = mousePosition.x - square->rectangle.width / 2;
     newPosition.y = mousePosition.y - square->rectangle.height / 2;
 
-    int rise = newPosition.y - originalPosition.y;
-    int run = newPosition.x - originalPosition.x;
+    // Calculate velocity from mouse movement
+    if (square->sampleCount > 0) {
+      float dx = mousePosition.x - square->lastMousePos.x;
+      float dy = mousePosition.y - square->lastMousePos.y;
 
-    if (rise > 0 && run == 0) {
-      square->heading.vertical = NORTH;
-      square->heading.horizontal = NONE;
-    } else if (rise < 0 && run == 0) {
-      square->heading.vertical = SOUTH;
-      square->heading.horizontal = NONE;
-    } else if (rise == 0 && run > 0) {
-      square->heading.vertical = NONE;
-      square->heading.horizontal = EAST;
-    } else if (rise == 0 && run < 0) {
-      square->heading.vertical = NONE;
-      square->heading.horizontal = WEST;
-    } else if (rise > 0 && run > 0) {
-      square->heading.vertical = NORTH;
-      square->heading.horizontal = EAST;
-    } else if (rise > 0 && run < 0) {
-      square->heading.vertical = NORTH;
-      square->heading.horizontal = WEST;
-    } else if (rise < 0 && run > 0) {
-      square->heading.vertical = SOUTH;
-      square->heading.horizontal = EAST;
-    } else if (rise < 0 && run < 0) {
-      square->heading.vertical = SOUTH;
-      square->heading.horizontal = WEST;
+      // Smooth the heading by averaging with previous direction
+      const float smoothing = 0.3f;
+      square->heading.x =
+          square->heading.x * (1.0f - smoothing) + dx * smoothing;
+      square->heading.y =
+          square->heading.y * (1.0f - smoothing) + dy * smoothing;
+
+      // Normalize the heading vector
+      float magnitude = sqrtf(
+          square->heading.x * square->heading.x +
+          square->heading.y * square->heading.y
+      );
+      if (magnitude > 0.01f) {
+        square->heading.x /= magnitude;
+        square->heading.y /= magnitude;
+      }
     }
+
+    square->lastMousePos = mousePosition;
+    square->sampleCount++;
   }
 
+  // Boundary checking with heading reversal
   if (newPosition.x > GetScreenWidth() - square->rectangle.width) {
     newPosition.x = GetScreenWidth() - square->rectangle.width;
-    square->heading.horizontal = WEST;
+    square->heading.x = -fabsf(square->heading.x);
   }
 
   if (newPosition.x < 0) {
     newPosition.x = 0;
-    square->heading.horizontal = EAST;
+    square->heading.x = fabsf(square->heading.x);
   }
 
-  if (newPosition.y > GetScreenHeight() - square->rectangle.width) {
+  if (newPosition.y > GetScreenHeight() - square->rectangle.height) {
     newPosition.y = GetScreenHeight() - square->rectangle.height;
-    square->heading.vertical = SOUTH;
+    square->heading.y = -fabsf(square->heading.y);
   }
 
   if (newPosition.y < 0) {
     newPosition.y = 0;
-    square->heading.vertical = NORTH;
+    square->heading.y = fabsf(square->heading.y);
   }
 
   if (square->selected) {
@@ -166,27 +153,9 @@ void move_square(Square *square, float deltaTime) {
     return;
   }
 
-  switch (square->heading.vertical) {
-  case NORTH:
-    newPosition.y += square->speed * deltaTime;
-    break;
-  case SOUTH:
-    newPosition.y -= square->speed * deltaTime;
-    break;
-  default:
-    break;
-  }
-
-  switch (square->heading.horizontal) {
-  case EAST:
-    newPosition.x += square->speed * deltaTime;
-    break;
-  case WEST:
-    newPosition.x -= square->speed * deltaTime;
-    break;
-  default:
-    break;
-  }
+  // Move based on normalized heading vector
+  newPosition.x += square->heading.x * square->speed * deltaTime;
+  newPosition.y += square->heading.y * square->speed * deltaTime;
 
   square->rectangle.x = newPosition.x;
   square->rectangle.y = newPosition.y;
