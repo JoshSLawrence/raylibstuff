@@ -103,10 +103,13 @@ void move_square(Square *square) {
 
   if (square->selected) {
     Vector2 mousePosition = GetMousePosition();
-    newPosition.x = mousePosition.x;
-    newPosition.y = mousePosition.y;
+
+    newPosition.x = mousePosition.x - square->rectangle.width / 2;
+    newPosition.y = mousePosition.y - square->rectangle.height / 2;
+
     int rise = newPosition.y - originalPosition.y;
     int run = newPosition.x - originalPosition.x;
+
     if (rise > 0 && run == 0) {
       square->heading.vertical = NORTH;
       square->heading.horizontal = NONE;
