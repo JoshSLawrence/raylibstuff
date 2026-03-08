@@ -1,10 +1,10 @@
 #include "include/raylib.h"
 
-const int FPS = 60;
+const int FPS = 1000;
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 450;
 const char *WINDOW_TITLE = "raylib lab - bouncing square";
-const int SPEED = 3;
+const float SPEED = 300.0f;
 const int SIZE = 80;
 const int STARTING_POSITION[] = {0, SCREEN_HEIGHT / 2 - SIZE / 2};
 
@@ -24,13 +24,13 @@ typedef struct Heading {
 typedef struct Square {
   Rectangle rectangle;
   Heading heading;
-  int speed;
+  float speed;
   bool selected;
   int rise;
   int run;
 } Square;
 
-void move_square(Square *square);
+void move_square(Square *square, float deltaTime);
 bool is_mouse_on_square(Square *square);
 
 int main(void) {
@@ -56,13 +56,16 @@ int main(void) {
   };
 
   while (!WindowShouldClose()) {
+    float deltaTime = GetFrameTime();
+
     if (square.selected && IsMouseButtonDown(MOUSE_LEFT_BUTTON) ||
         is_mouse_on_square(&square)) {
       square.selected = true;
     } else {
       square.selected = false;
     }
-    move_square(&square);
+
+    move_square(&square, deltaTime);
     BeginDrawing();
     ClearBackground(RAYWHITE);
     DrawRectangleRec(square.rectangle, RED);
@@ -92,7 +95,7 @@ bool is_mouse_on_square(Square *square) {
   return false;
 }
 
-void move_square(Square *square) {
+void move_square(Square *square, float deltaTime) {
   Vector2 originalPosition = {
       .x = square->rectangle.x,
       .y = square->rectangle.y,
@@ -163,10 +166,10 @@ void move_square(Square *square) {
 
   switch (square->heading.vertical) {
   case NORTH:
-    newPosition.y += square->speed;
+    newPosition.y += square->speed * deltaTime;
     break;
   case SOUTH:
-    newPosition.y -= square->speed;
+    newPosition.y -= square->speed * deltaTime;
     break;
   default:
     break;
@@ -174,10 +177,10 @@ void move_square(Square *square) {
 
   switch (square->heading.horizontal) {
   case EAST:
-    newPosition.x += square->speed;
+    newPosition.x += square->speed * deltaTime;
     break;
   case WEST:
-    newPosition.x -= square->speed;
+    newPosition.x -= square->speed * deltaTime;
     break;
   default:
     break;
