@@ -1,10 +1,10 @@
 #include "include/raylib.h"
 
-const int FPS = 1000;
+const int FPS = 60;
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 450;
 const char *WINDOW_TITLE = "raylib lab - bouncing square";
-const float SPEED = 300.0f;
+const float SPEED = 500.0f;
 const int SIZE = 80;
 const int STARTING_POSITION[] = {0, SCREEN_HEIGHT / 2 - SIZE / 2};
 
@@ -69,6 +69,7 @@ int main(void) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
     DrawRectangleRec(square.rectangle, RED);
+    DrawFPS(10, 10);
     EndDrawing();
   }
 
